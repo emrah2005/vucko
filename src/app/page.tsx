@@ -3,7 +3,7 @@ import Link from 'next/link';
 import ProductCard from '@/components/ProductCard';
 import { PRODUCTS } from '@/lib/products-catalog';
 import { FALLBACK_SETTINGS, FALLBACK_OPENING_HOURS } from '@/lib/seed-data';
-import { ArrowRight, MapPin, Phone, Clock, Instagram, Facebook, Flame } from 'lucide-react';
+import { ArrowRight, MapPin, Phone, Clock, Instagram, Facebook } from 'lucide-react';
 
 export const revalidate = 30;
 
@@ -77,17 +77,6 @@ export default async function HomePage() {
                   priority
                   className="object-cover"
                 />
-              </div>
-              <div className="hidden md:block absolute -bottom-6 -left-6 bg-white p-5 rounded-xl border border-border shadow-sm max-w-[220px]">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-full bg-red-accent/10 flex items-center justify-center">
-                    <Flame className="w-5 h-5 text-red-accent" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold">Аутентично</div>
-                    <div className="text-xs text-charcoal-muted">Традиционална скара</div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
