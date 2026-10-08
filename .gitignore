@@ -50,3 +50,6 @@ coverage
 # Vercel
 .vercel
 .turbo
+
+# Local data (order counter, local orders, admin settings) — NEVER commit PII
+.vucko-data/
