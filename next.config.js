@@ -15,7 +15,7 @@ const nextConfig = {
     minimumCacheTTL: 60 * 60 * 24 * 7, // 7 days
   },
   experimental: {
-    optimizePackageImports: ['@supabase/supabase-js', '@supabase/ssr', 'lucide-react'],
+    optimizePackageImports: ['lucide-react'],
     scrollRestoration: true,
   },
   async headers() {

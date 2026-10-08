@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { Resend } from 'resend';
 import type { OrderType, PaymentMethod } from '@/lib/types';
 import { isValidPhone, formatCurrency } from '@/lib/utils';
 import { calculateOrderItems } from '@/lib/products-catalog';
@@ -25,6 +24,37 @@ const PAYMENT_METHODS: PaymentMethod[] = [
 ];
 
 const GENERIC_ERROR = 'Не успеавме да ја испратиме нарачката. Ве молиме обидете се повторно.';
+
+/** Trim + strip accidental quotes from Vercel env paste. */
+function cleanEnv(name: string, fallback = ''): string {
+  const raw = process.env[name] ?? fallback;
+  return String(raw).trim().replace(/^["']|["']$/g, '');
+}
+
+function fail(code: string, detail?: string) {
+  console.error(`[orders] ${code}${detail ? `: ${detail}` : ''}`);
+  return NextResponse.json(
+    { error: GENERIC_ERROR, code, detail: detail || undefined },
+    { status: 500 },
+  );
+}
+
+/** Health check — open in browser to see if Vercel has Resend env vars. */
+export async function GET() {
+  const key = cleanEnv('RESEND_API_KEY');
+  const from = cleanEnv('RESEND_FROM_EMAIL');
+  const to = cleanEnv('ORDER_RECEIVER_EMAIL', 'ahmedidelil0@gmail.com');
+  return NextResponse.json({
+    ok: true,
+    env: {
+      RESEND_API_KEY: Boolean(key),
+      RESEND_FROM_EMAIL: Boolean(from),
+      ORDER_RECEIVER_EMAIL: Boolean(to),
+    },
+    from_hint: from.includes('@') ? `***@${from.split('@')[1]}` : null,
+    commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? null,
+  });
+}
 
 function pad(n: number, width = 2) {
   return String(n).padStart(width, '0');
@@ -334,18 +364,27 @@ export async function POST(req: Request) {
     const orderNumber = buildOrderNumber();
     const createdAt = formatNow();
 
-    const resendKey = process.env.RESEND_API_KEY;
-    const fromEmail = process.env.RESEND_FROM_EMAIL;
-    const toEmailsRaw =
-      process.env.ORDER_RECEIVER_EMAIL || 'ahmedidelil0@gmail.com';
+    const resendKey = cleanEnv('RESEND_API_KEY');
+    const fromEmail = cleanEnv('RESEND_FROM_EMAIL');
+    const toEmailsRaw = cleanEnv(
+      'ORDER_RECEIVER_EMAIL',
+      'ahmedidelil0@gmail.com',
+    );
     const toEmails = toEmailsRaw
       .split(',')
       .map((s) => s.trim())
       .filter(Boolean);
 
     if (!resendKey || !fromEmail || toEmails.length === 0) {
-      console.error('[orders] Resend configuration missing (RESEND_API_KEY / RESEND_FROM_EMAIL / ORDER_RECEIVER_EMAIL)');
-      return NextResponse.json({ error: GENERIC_ERROR }, { status: 500 });
+      const missing = [
+        !resendKey && 'RESEND_API_KEY',
+        !fromEmail && 'RESEND_FROM_EMAIL',
+        toEmails.length === 0 && 'ORDER_RECEIVER_EMAIL',
+      ].filter(Boolean);
+      return fail(
+        'RESEND_CONFIG',
+        `Missing env: ${missing.join(', ')}. Set in Vercel → Settings → Environment Variables, then Redeploy.`,
+      );
     }
 
     const addressField =
@@ -385,21 +424,37 @@ export async function POST(req: Request) {
     });
 
     try {
-      const resend = new Resend(resendKey);
-      const { error: sendError } = await resend.emails.send({
-        from: fromEmail,
-        to: toEmails,
-        subject,
-        html,
-        text,
+      // Direct REST call — more reliable on Vercel than the SDK wrapper.
+      const resendRes = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${resendKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: fromEmail,
+          to: toEmails,
+          subject,
+          html,
+          text,
+        }),
       });
-      if (sendError) {
-        console.error('[orders] Resend send failed', sendError);
-        return NextResponse.json({ error: GENERIC_ERROR }, { status: 500 });
+      const resendBody = (await resendRes.json().catch(() => ({}))) as {
+        id?: string;
+        message?: string;
+        name?: string;
+        error?: { message?: string };
+      };
+      if (!resendRes.ok) {
+        const msg =
+          resendBody?.message ||
+          resendBody?.error?.message ||
+          resendBody?.name ||
+          `HTTP ${resendRes.status}`;
+        return fail('RESEND_SEND', String(msg));
       }
-    } catch (err) {
-      console.error('[orders] Resend send failed', err);
-      return NextResponse.json({ error: GENERIC_ERROR }, { status: 500 });
+    } catch (err: any) {
+      return fail('RESEND_SEND', err?.message || String(err));
     }
 
     return NextResponse.json({
@@ -407,8 +462,7 @@ export async function POST(req: Request) {
       total,
       order_type: json.order_type,
     });
-  } catch (e) {
-    console.error('[orders] Unhandled error', e);
-    return NextResponse.json({ error: GENERIC_ERROR }, { status: 500 });
+  } catch (e: any) {
+    return fail('UNHANDLED', e?.message || String(e));
   }
 }

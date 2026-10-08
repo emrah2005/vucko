@@ -111,7 +111,12 @@ export default function OrderPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Грешка при креирање нарачка.');
+        const detail = data.detail || data.code;
+        throw new Error(
+          detail
+            ? `${data.error || 'Грешка при креирање нарачка.'} (${detail})`
+            : data.error || 'Грешка при креирање нарачка.',
+        );
       }
 
       clearCart();
