@@ -1,11 +1,26 @@
 import type { Product, ProductCategory } from '@/lib/types';
 
-function img(prompt: string) {
-  return `https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=${encodeURIComponent(
-    prompt
-  )}&image_size=square_hd`;
-}
+/** Local menu photos from /public/images/menu (matched by filename). */
+const menuImg = (file: string) => `/images/menu/${file}`;
 
+/**
+ * Menu order follows image filenames (food first by natural pairing, then drinks A→Z).
+ * Image map:
+ *   5kebapi.jpg              → Порција од 5 ќебапи
+ *   10kebapi.jpg             → Порција од 10 ќебапи
+ *   tavcegrafce-5kebapi.jpeg → Тавче гравче со 5 ќебапи
+ *   tavcegrafce.jpg          → Тавче гравче
+ *   sendvicpleskavica.jpg    → Сендвич со плескавица
+ *   senvicstek.png           → Сендвич со стек
+ *   pileshkacorba.jpg        → Пилешка чорба
+ *   coca-cola.jpg            → Кока Кола
+ *   fanta.jpg                → Фанта
+ *   fantatropical.jpg        → Фанта Тропикл
+ *   gazoza.jpg               → Газоза
+ *   schweppes.jpg            → Швепс
+ *   voda.jpg                 → Обична вода
+ *   kiselavoda.jpg           → Кисела вода
+ */
 export const PRODUCTS: Product[] = [
   {
     id: 'kebapi-5',
@@ -14,9 +29,7 @@ export const PRODUCTS: Product[] = [
       'Пет сочни барањски ќебапи, подготвени по традиционална рецепта со свеж бел лук и зачини.',
     category: 'Скара',
     price: 150,
-    image_url: img(
-      'grilled balkan cevapi kebabs portion of 5 on white plate with onion and kajmak, dark moody macedonian restaurant food photography, realistic'
-    ),
+    image_url: menuImg('5kebapi.jpg'),
     available: true,
     featured: true,
     created_at: new Date().toISOString(),
@@ -29,9 +42,7 @@ export const PRODUCTS: Product[] = [
       'Десет сочни барањски ќебапи — голема порција за двајца, подготвени на скара.',
     category: 'Скара',
     price: 250,
-    image_url: img(
-      'large portion of ten grilled balkan cevapi kebabs on a traditional clay plate with flatbread, kaymak, raw onion and red pepper, dark professional balkan restaurant food photo, realistic'
-    ),
+    image_url: menuImg('10kebapi.jpg'),
     available: true,
     featured: true,
     created_at: new Date().toISOString(),
@@ -44,9 +55,7 @@ export const PRODUCTS: Product[] = [
       'Автентичен македонски тавче гравче во глинена тава, сервиран со 5 сочни ќебапи на скара.',
     category: 'Скара',
     price: 260,
-    image_url: img(
-      'macedonian tavche gravche baked beans in clay pot served with 5 grilled cevapi kebabs on side, traditional macedonian restaurant food photography, dark moody, realistic'
-    ),
+    image_url: menuImg('tavcegrafce-5kebapi.jpeg'),
     available: true,
     featured: true,
     created_at: new Date().toISOString(),
@@ -59,9 +68,7 @@ export const PRODUCTS: Product[] = [
       'Автентичен македонски тавче гравче — боби во глинена тава, подготвен по домашна рецепта.',
     category: 'Скара',
     price: 150,
-    image_url: img(
-      'traditional macedonian tavche gravche baked white beans in rustic clay terracotta dish, garnished with parsley and paprika, dark food photography, realistic'
-    ),
+    image_url: menuImg('tavcegrafce.jpg'),
     available: true,
     featured: false,
     created_at: new Date().toISOString(),
@@ -74,9 +81,7 @@ export const PRODUCTS: Product[] = [
       'Свежа домашна торта со голема сочна плескавица од смешано месо, салата и соус.',
     category: 'Скара',
     price: 150,
-    image_url: img(
-      'grilled balkan pljeskavica burger sandwich in a fresh soft bun with lettuce tomato onion and kajmak, macedonian street food photography, realistic'
-    ),
+    image_url: menuImg('sendvicpleskavica.jpg'),
     available: true,
     featured: true,
     created_at: new Date().toISOString(),
@@ -89,9 +94,7 @@ export const PRODUCTS: Product[] = [
       'Соковит свински стек подготвен на скара, сервиран во свеж сендвич со зеленчук и сос.',
     category: 'Скара',
     price: 170,
-    image_url: img(
-      'grilled pork steak sandwich in artisan bread roll with lettuce and sauce, balkan grill, dark restaurant food photography, realistic premium'
-    ),
+    image_url: menuImg('senvicstek.png'),
     available: true,
     featured: false,
     created_at: new Date().toISOString(),
@@ -104,9 +107,7 @@ export const PRODUCTS: Product[] = [
       'Домаќинска питка пилешка чорба со сочни парчиња пиле, моркови, селери и зачин од зеленчук.',
     category: 'Чорби',
     price: 150,
-    image_url: img(
-      'traditional macedonian chicken soup chorba in white ceramic bowl with noodles carrot and parsley, homemade broth, dark moody food photography, realistic'
-    ),
+    image_url: menuImg('pileshkacorba.jpg'),
     available: true,
     featured: false,
     created_at: new Date().toISOString(),
@@ -118,9 +119,7 @@ export const PRODUCTS: Product[] = [
     description: 'Студена Кока Кола, 0.5 литар.',
     category: 'Пијалоци',
     price: 80,
-    image_url: img(
-      'cold coca cola glass bottle with condensation drops on dark stone table, ice cubes, beverage photography, realistic'
-    ),
+    image_url: menuImg('coca-cola.jpg'),
     available: true,
     featured: false,
     created_at: new Date().toISOString(),
@@ -132,23 +131,7 @@ export const PRODUCTS: Product[] = [
     description: 'Студена Фанта портокал, 0.5 литар.',
     category: 'Пијалоци',
     price: 80,
-    image_url: img(
-      'cold fanta orange soda glass bottle with condensation on dark rustic stone surface, ice cubes, realistic beverage photography'
-    ),
-    available: true,
-    featured: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: 'schwepps',
-    name: 'Швепс',
-    description: 'Швепс, освежувачки пијалок, 0.5 литар.',
-    category: 'Пијалоци',
-    price: 80,
-    image_url: img(
-      'cold schweppes tonic bottle with condensation on dark stone table, lemon slice, realistic beverage photography'
-    ),
+    image_url: menuImg('fanta.jpg'),
     available: true,
     featured: false,
     created_at: new Date().toISOString(),
@@ -160,9 +143,7 @@ export const PRODUCTS: Product[] = [
     description: 'Студена Фанта Тропикл со вкус на тропски овошје, 0.5 литар.',
     category: 'Пијалоци',
     price: 80,
-    image_url: img(
-      'cold fanta tropical exotic soda bottle with condensation surrounded by mango pineapple orange, dark surface, realistic beverage photography'
-    ),
+    image_url: menuImg('fantatropical.jpg'),
     available: true,
     featured: false,
     created_at: new Date().toISOString(),
@@ -174,23 +155,7 @@ export const PRODUCTS: Product[] = [
     description: 'Традиционална македонска Газоза — освежувачки газиран пијалок, 0.5 литар.',
     category: 'Пијалоци',
     price: 80,
-    image_url: img(
-      'traditional glass bottle of macedonian turkish gazoz soda lemonade with condensation on dark table, lemon and mint leaves, realistic beverage photography'
-    ),
-    available: true,
-    featured: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: 'obicna-voda',
-    name: 'Обична вода',
-    description: 'Студена обична негазирана вода, 0.5 литар.',
-    category: 'Пијалоци',
-    price: 50,
-    image_url: img(
-      'clear still mineral water plastic bottle with condensation drops on dark stone table, realistic pure beverage photography'
-    ),
+    image_url: menuImg('gazoza.jpg'),
     available: true,
     featured: false,
     created_at: new Date().toISOString(),
@@ -202,9 +167,31 @@ export const PRODUCTS: Product[] = [
     description: 'Студена газирана минерална кисела вода, 0.5 литар.',
     category: 'Пијалоци',
     price: 60,
-    image_url: img(
-      'cold sparkling mineral water glass bottle with bubbles condensation on dark surface, realistic beverage photography'
-    ),
+    image_url: menuImg('kiselavoda.jpg'),
+    available: true,
+    featured: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'schwepps',
+    name: 'Швепс',
+    description: 'Швепс, освежувачки пијалок, 0.5 литар.',
+    category: 'Пијалоци',
+    price: 80,
+    image_url: menuImg('schweppes.jpg'),
+    available: true,
+    featured: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: 'obicna-voda',
+    name: 'Обична вода',
+    description: 'Студена обична негазирана вода, 0.5 литар.',
+    category: 'Пијалоци',
+    price: 50,
+    image_url: menuImg('voda.jpg'),
     available: true,
     featured: false,
     created_at: new Date().toISOString(),
