@@ -59,15 +59,30 @@ function writeJson<T>(path: string, value: T) {
   writeFileSync(path, JSON.stringify(value, null, 2), 'utf-8');
 }
 
+/** Time-based fallback when the filesystem is read-only (e.g. Vercel serverless). */
+function ephemeralOrderNumber(): number {
+  // 1000–9999 range so padStart(4) still yields a short suffix
+  return 1000 + (Date.now() % 9000);
+}
+
 export function generateOrderNumber(): number {
-  ensureDir();
-  const counters = readJson<{ orderNumber: number }>(COUNTER_FILE, {
-    orderNumber: 1000,
-  });
-  counters.orderNumber = Number(counters.orderNumber || 1000) + 1;
-  if (counters.orderNumber < 1001) counters.orderNumber = 1001;
-  writeJson(COUNTER_FILE, counters);
-  return counters.orderNumber;
+  try {
+    ensureDir();
+    const counters = readJson<{ orderNumber: number }>(COUNTER_FILE, {
+      orderNumber: 1000,
+    });
+    counters.orderNumber = Number(counters.orderNumber || 1000) + 1;
+    if (counters.orderNumber < 1001) counters.orderNumber = 1001;
+    writeJson(COUNTER_FILE, counters);
+    return counters.orderNumber;
+  } catch (err) {
+    // Vercel / read-only FS: counter file cannot be written — still allow orders.
+    console.warn(
+      '[orders] Counter file unavailable, using ephemeral order number',
+      err,
+    );
+    return ephemeralOrderNumber();
+  }
 }
 
 export function saveOrder(order: StoredOrder): StoredOrder {

@@ -386,13 +386,17 @@ export async function POST(req: Request) {
 
     try {
       const resend = new Resend(resendKey);
-      await resend.emails.send({
+      const { error: sendError } = await resend.emails.send({
         from: fromEmail,
         to: toEmails,
         subject,
         html,
         text,
       });
+      if (sendError) {
+        console.error('[orders] Resend send failed', sendError);
+        return NextResponse.json({ error: GENERIC_ERROR }, { status: 500 });
+      }
     } catch (err) {
       console.error('[orders] Resend send failed', err);
       return NextResponse.json({ error: GENERIC_ERROR }, { status: 500 });
