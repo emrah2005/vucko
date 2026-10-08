@@ -1,63 +1,16 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/server';
 import ProductCard from '@/components/ProductCard';
-import type { Product, Settings, OpeningHours } from '@/lib/types';
-import { FALLBACK_PRODUCTS, FALLBACK_SETTINGS, FALLBACK_OPENING_HOURS } from '@/lib/seed-data';
+import { PRODUCTS } from '@/lib/products-catalog';
+import { FALLBACK_SETTINGS, FALLBACK_OPENING_HOURS } from '@/lib/seed-data';
 import { ArrowRight, MapPin, Phone, Clock, Instagram, Facebook, Flame } from 'lucide-react';
 
 export const revalidate = 30;
 
 export default async function HomePage() {
-  const supabase = createClient();
-
-  let featured: Product[] = [];
-  try {
-    const { data, error } = await supabase
-      .from('products')
-      .select('*')
-      .or('featured.eq.true, available.eq.true')
-      .limit(3)
-      .order('created_at', { ascending: false });
-    if (!error && data && data.length > 0) {
-      featured = data as Product[];
-    } else {
-      featured = FALLBACK_PRODUCTS.filter((p) => p.featured || p.available).slice(0, 3);
-    }
-  } catch {
-    featured = FALLBACK_PRODUCTS.filter((p) => p.featured || p.available).slice(0, 3);
-  }
-
-  let settings: Settings | null = null;
-  try {
-    const { data, error } = await supabase
-      .from('settings')
-      .select('*')
-      .eq('id', 'main')
-      .single();
-    if (!error && data) {
-      settings = data as Settings;
-    } else {
-      settings = FALLBACK_SETTINGS;
-    }
-  } catch {
-    settings = FALLBACK_SETTINGS;
-  }
-
-  let hours: OpeningHours[] = [];
-  try {
-    const { data, error } = await supabase
-      .from('opening_hours')
-      .select('*')
-      .order('day_of_week', { ascending: true });
-    if (!error && data && data.length > 0) {
-      hours = data as OpeningHours[];
-    } else {
-      hours = FALLBACK_OPENING_HOURS;
-    }
-  } catch {
-    hours = FALLBACK_OPENING_HOURS;
-  }
+  const featured = PRODUCTS.filter((p) => p.featured).slice(0, 3);
+  const settings = FALLBACK_SETTINGS;
+  const hours = FALLBACK_OPENING_HOURS;
 
   return (
     <>
@@ -118,7 +71,7 @@ export default async function HomePage() {
               <div className="relative aspect-[4/5] md:aspect-[5/6] rounded-2xl overflow-hidden bg-cream-dark">
                 <Image
                   src="/images/1.jpeg"
-                  alt="Скара -烤肉"
+                  alt="Скара - традиционална готвење"
                   fill
                   sizes="(max-width: 1024px) 100vw, 50vw"
                   priority
@@ -159,23 +112,10 @@ export default async function HomePage() {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-7">
-            {(featured?.length ? (featured as Product[]) : ([] as Product[])).map(
-              (p: Product) => (
-                <ProductCard key={p.id} product={p} variant="featured" />
-              )
-            )}
+            {(featured?.length ? featured : []).map((p) => (
+              <ProductCard key={p.id} product={p} variant="featured" />
+            ))}
           </div>
-
-          {!featured?.length && (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-7">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="animate-pulse bg-cream-dark rounded-xl aspect-[4/3] border border-border"
-                />
-              ))}
-            </div>
-          )}
 
           <div className="mt-12 text-center">
             <Link
@@ -244,7 +184,7 @@ export default async function HomePage() {
                 </p>
                 <p>
                   Нашето приоритет е секојдневно да нудиме најсвежа скара подготвена со
-                  грижа. Од классичните ќебапи, преку сочните плескавици, до
+                  грижа. Од класичните ќебапи, преку сочните плескавици, до
                   автентичното тавче гравче — секој парче е внимателно подготвено
                   за вас.
                 </p>
@@ -292,9 +232,12 @@ export default async function HomePage() {
                   </div>
                   <div>
                     <div className="text-xs uppercase tracking-widest text-charcoal-muted mb-1">
-                      Адреса
+                      Локација
                     </div>
-                    <div className="text-charcoal font-medium">
+                    <div className="text-charcoal font-semibold mb-0.5">
+                      Ќебапчилница Вучко
+                    </div>
+                    <div className="text-charcoal-light">
                       {settings?.address || 'Ростуше, Северна Македонија'}
                     </div>
                   </div>
@@ -306,11 +249,14 @@ export default async function HomePage() {
                   </div>
                   <div>
                     <div className="text-xs uppercase tracking-widest text-charcoal-muted mb-1">
-                      Телефон
+                      Контакт
                     </div>
-                    <div className="text-charcoal font-medium">
-                      {settings?.phone || '07X-XXX-XXX'}
-                    </div>
+                    <a
+                      href={`tel:${(settings?.phone || '078-495-591').replace(/\s|-/g, '')}`}
+                      className="text-charcoal font-medium hover:text-red-accent transition-colors"
+                    >
+                      {settings?.phone || '078-495-591'}
+                    </a>
                   </div>
                 </div>
 
@@ -322,18 +268,16 @@ export default async function HomePage() {
                     <div className="text-xs uppercase tracking-widest text-charcoal-muted mb-2">
                       Работно време
                     </div>
-                    <ul className="space-y-1 text-sm">
-                      {(hours || []).map((h) => (
-                        <li key={h.id} className="flex justify-between">
-                          <span className="text-charcoal-light">{h.day_name}</span>
-                          <span className="text-charcoal-muted">
-                            {h.closed
-                              ? 'Затворено'
-                              : `${h.open_time} – ${h.close_time}`}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
+                    <div className="space-y-1.5 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-charcoal font-medium">Понеделник — Сабота</span>
+                        <span className="text-charcoal">08:00 — 15:00</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-charcoal font-medium">Недела</span>
+                        <span className="text-red-accent font-medium">Затворено</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 

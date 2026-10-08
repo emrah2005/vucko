@@ -29,6 +29,7 @@ Thumbs.db
 .idea
 *.swp
 *.swo
+.trae
 
 # Supabase CLI — local state, secrets, temp files
 supabase/.temp

@@ -121,10 +121,13 @@ export default function OrderPage() {
         )}`
       );
     } catch (err: any) {
-      setGlobalError(
-        err?.message ||
-          'Настана грешка при креирање на нарачката. Обидете се повторно.'
-      );
+      const msg = err?.message;
+      const generic = 'Не успеавме да ја испратиме нарачката. Ве молиме обидете се повторно.';
+      if (!msg || /failed|network|fetch|грешка при креирање/i.test(msg)) {
+        setGlobalError(generic);
+      } else {
+        setGlobalError(msg);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -168,7 +171,7 @@ export default function OrderPage() {
           </h2>
           <p className="text-charcoal-light text-sm mb-6">
             Моментално не примаме онлајн нарачки. Дојдете во гости во нашата
-            локална或将 се јавите на телефон.
+            локална или се јавите на телефон.
           </p>
           <Link
             href="/contact"
@@ -441,7 +444,7 @@ export default function OrderPage() {
                     {submitting ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        Се испраќа...
+                        Се испраќа нарачката...
                       </>
                     ) : (
                       <>

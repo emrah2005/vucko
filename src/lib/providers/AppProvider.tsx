@@ -1,8 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import type { Settings, OpeningHours } from '@/lib/types';
+import { FALLBACK_SETTINGS, FALLBACK_OPENING_HOURS } from '@/lib/seed-data';
 
 type AppContextType = {
   settings: Settings | null;
@@ -18,42 +18,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [openingHours, setOpeningHours] = useState<OpeningHours[]>([]);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
 
   const refresh = useCallback(async () => {
     try {
-      const { data: settingsData } = await supabase
-        .from('settings')
-        .select('*')
-        .eq('id', 'main')
-        .single();
-      setSettings(settingsData);
-
-      const { data: hoursData } = await supabase
-        .from('opening_hours')
-        .select('*')
-        .order('day_of_week', { ascending: true });
-      setOpeningHours(hoursData || []);
-    } catch {
-      // fallback defaults
-      setSettings({
-        id: 'main',
-        restaurant_name: 'Ќебапчилница Вучко',
-        phone: '078-495-591',
-        email: 'ahmedidelil0@gmail.com',
-        address: 'Ростуше, Северна Македонија',
-        instagram_url: '',
-        facebook_url: '',
-        delivery_available: true,
-        delivery_area: 'Ростуше и околина',
-        online_ordering_open: true,
-        created_at: '',
-        updated_at: '',
-      });
+      setSettings(FALLBACK_SETTINGS);
+      setOpeningHours(FALLBACK_OPENING_HOURS);
     } finally {
       setLoading(false);
     }
-  }, [supabase]);
+  }, []);
 
   useEffect(() => {
     refresh();

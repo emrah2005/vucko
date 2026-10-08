@@ -1,6 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
 import { MapPin, Phone, Clock, Instagram, Facebook, Mail } from 'lucide-react';
-import type { Settings, OpeningHours } from '@/lib/types';
 import { FALLBACK_SETTINGS, FALLBACK_OPENING_HOURS } from '@/lib/seed-data';
 
 export const revalidate = 30;
@@ -12,38 +10,8 @@ export const metadata = {
 };
 
 export default async function ContactPage() {
-  const supabase = createClient();
-
-  let settings: Settings | null = null;
-  try {
-    const { data, error } = await supabase
-      .from('settings')
-      .select('*')
-      .eq('id', 'main')
-      .single();
-    if (!error && data) {
-      settings = data as Settings;
-    } else {
-      settings = FALLBACK_SETTINGS;
-    }
-  } catch {
-    settings = FALLBACK_SETTINGS;
-  }
-
-  let hours: OpeningHours[] = [];
-  try {
-    const { data, error } = await supabase
-      .from('opening_hours')
-      .select('*')
-      .order('day_of_week', { ascending: true });
-    if (!error && data && data.length > 0) {
-      hours = data as OpeningHours[];
-    } else {
-      hours = FALLBACK_OPENING_HOURS;
-    }
-  } catch {
-    hours = FALLBACK_OPENING_HOURS;
-  }
+  const settings = FALLBACK_SETTINGS;
+  const hours = FALLBACK_OPENING_HOURS;
 
   return (
     <div className="max-w-content mx-auto px-5 md:px-8 pt-14 md:pt-20 pb-24">
@@ -74,9 +42,12 @@ export default async function ContactPage() {
                 </div>
                 <div>
                   <div className="text-xs uppercase tracking-widest text-charcoal-muted mb-1">
-                    Адреса
+                    Локација
                   </div>
-                  <div className="text-charcoal font-medium">
+                  <div className="text-charcoal font-semibold mb-0.5">
+                    Ќебапчилница Вучко
+                  </div>
+                  <div className="text-charcoal-light">
                     {settings?.address || 'Ростуше, Северна Македонија'}
                   </div>
                 </div>
@@ -89,9 +60,12 @@ export default async function ContactPage() {
                   <div className="text-xs uppercase tracking-widest text-charcoal-muted mb-1">
                     Телефон
                   </div>
-                  <div className="text-charcoal font-medium">
-                    {settings?.phone || '07X-XXX-XXX'}
-                  </div>
+                  <a
+                    href={`tel:${(settings?.phone || '078-495-591').replace(/\s|-/g, '')}`}
+                    className="text-charcoal font-medium hover:text-red-accent transition-colors"
+                  >
+                    {settings?.phone || '078-495-591'}
+                  </a>
                 </div>
               </li>
               <li className="flex items-start gap-4">
@@ -102,9 +76,12 @@ export default async function ContactPage() {
                   <div className="text-xs uppercase tracking-widest text-charcoal-muted mb-1">
                     Имејл
                   </div>
-                  <div className="text-charcoal font-medium">
+                  <a
+                    href={`mailto:${settings?.email || 'ahmedidelil0@gmail.com'}`}
+                    className="text-charcoal font-medium hover:text-red-accent transition-colors"
+                  >
                     {settings?.email || 'ahmedidelil0@gmail.com'}
-                  </div>
+                  </a>
                 </div>
               </li>
             </ul>
@@ -113,18 +90,28 @@ export default async function ContactPage() {
               <h3 className="text-sm uppercase tracking-widest text-charcoal-muted mb-4">
                 Работно време
               </h3>
-              <ul className="space-y-2 text-sm">
-                {(hours || []).map((h) => (
-                  <li key={h.id} className="flex justify-between">
-                    <span className="text-charcoal-light">{h.day_name}</span>
-                    <span className={h.closed ? 'text-red-accent' : 'text-charcoal'}>
+              <div className="space-y-1.5 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-charcoal">Понеделник — Сабота</span>
+                  <span className="font-medium text-charcoal">08:00 — 15:00</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-charcoal">Недела</span>
+                  <span className="font-medium text-red-accent">Затворено</span>
+                </div>
+              </div>
+              <div className="mt-4 space-y-1 text-xs text-charcoal-muted pt-3 border-t border-border/60">
+                {hours.map((h) => (
+                  <div key={h.id} className="flex justify-between">
+                    <span>{h.day_name}</span>
+                    <span className={h.closed ? 'text-red-accent' : 'text-charcoal-light'}>
                       {h.closed
                         ? 'Затворено'
-                        : `${h.open_time} – ${h.close_time}`}
+                        : `${h.open_time} — ${h.close_time}`}
                     </span>
-                  </li>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
 
             <div className="mt-8 pt-8 border-t border-border">

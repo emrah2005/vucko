@@ -1,8 +1,7 @@
-import { createClient } from '@/lib/supabase/server';
 import ProductCard from '@/components/ProductCard';
 import CategoryFilter from '@/components/CategoryFilter';
-import type { Product, ProductCategory } from '@/lib/types';
-import { FALLBACK_PRODUCTS } from '@/lib/seed-data';
+import type { ProductCategory } from '@/lib/types';
+import { PRODUCTS, PRODUCT_CATEGORIES } from '@/lib/products-catalog';
 
 export const revalidate = 30;
 
@@ -16,27 +15,11 @@ type Params = {
   searchParams?: { category?: string };
 };
 
-const CATEGORIES: ProductCategory[] = ['Скара', 'Чорби', 'Пијалоци'];
-
 export default async function MenuPage({ searchParams }: Params) {
-  const selectedCategory = (searchParams?.category as ProductCategory) || null;
-  const supabase = createClient();
+  const selectedCategory =
+    (searchParams?.category as ProductCategory) || null;
 
-  let products: Product[] = FALLBACK_PRODUCTS;
-  try {
-    let query = supabase.from('products').select('*');
-    if (selectedCategory && CATEGORIES.includes(selectedCategory)) {
-      query = query.eq('category', selectedCategory);
-    }
-    const { data, error } = await query
-      .order('category', { ascending: true })
-      .order('price', { ascending: true });
-    if (!error && data && data.length > 0) {
-      products = data as Product[];
-    }
-  } catch {
-    // fallback to FALLBACK_PRODUCTS when Supabase is unreachable
-  }
+  const products = PRODUCTS;
 
   return (
     <div className="max-w-content mx-auto px-5 md:px-8 pt-14 md:pt-20 pb-24">
@@ -58,33 +41,35 @@ export default async function MenuPage({ searchParams }: Params) {
       <CategoryFilter selected={selectedCategory} />
 
       <div className="mt-10 space-y-16">
-        {(selectedCategory ? [selectedCategory] : CATEGORIES).map((cat) => {
-          const items = products.filter((p) => p.category === cat);
-          return (
-            <section key={cat} id={cat.toLowerCase()}>
-              <div className="flex items-center gap-4 mb-8">
-                <h2 className="text-2xl md:text-3xl font-bold text-charcoal">
-                  {cat}
-                </h2>
-                <div className="flex-1 h-px bg-border" />
-                <span className="text-xs text-charcoal-muted">
-                  {items.length} производи
-                </span>
-              </div>
-              {items.length > 0 ? (
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
-                  {items.map((p: Product) => (
-                    <ProductCard key={p.id} product={p} />
-                  ))}
+        {(selectedCategory ? [selectedCategory] : PRODUCT_CATEGORIES).map(
+          (cat) => {
+            const items = products.filter((p) => p.category === cat);
+            return (
+              <section key={cat} id={cat.toLowerCase()}>
+                <div className="flex items-center gap-4 mb-8">
+                  <h2 className="text-2xl md:text-3xl font-bold text-charcoal">
+                    {cat}
+                  </h2>
+                  <div className="flex-1 h-px bg-border" />
+                  <span className="text-xs text-charcoal-muted">
+                    {items.length} производи
+                  </span>
                 </div>
-              ) : (
-                <div className="border border-dashed border-border rounded-lg py-16 text-center text-charcoal-muted text-sm">
-                  Нема производи во оваа категорија.
-                </div>
-              )}
-            </section>
-          );
-        })}
+                {items.length > 0 ? (
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+                    {items.map((p) => (
+                      <ProductCard key={p.id} product={p} />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="border border-dashed border-border rounded-lg py-16 text-center text-charcoal-muted text-sm">
+                    Нема производи во оваа категорија.
+                  </div>
+                )}
+              </section>
+            );
+          }
+        )}
       </div>
     </div>
   );
