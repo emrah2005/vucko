@@ -1,0 +1,57 @@
+# Supabase CLI configuration - https://supabase.com/docs/guides/cli/config
+# DO NOT commit secrets to this file. Use .env files / env vars instead.
+
+project_id = ""
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[db.pooler]
+enabled = true
+port = 54329
+pool_mode = "transaction"
+default_pool_size = 20
+max_client_conn = 100
+
+[db.templates]
+# Templates generate placeholder values for `supabase init` and `link`.
+# If you don't want to scaffold placeholder files, set to false.
+initial = true
+
+[storage]
+enabled = true
+port = 54323
+file_size_limit = "50MB"
+
+[studio]
+enabled = true
+port = 54323
+api_url = "http://127.0.0.1:54321"
+inbucket_url = "http://127.0.0.1:54324"
+
+[analytics]
+enabled = false
+port = 54327
+vector_port = 54328
+
+[inbucket]
+enabled = true
+port = 54324
+smtp_port = 54325
+pop3_port = 54326
+
+[migrations]
+# Enable this to run all migrations in a single transaction (recommended).
+transactional = true
+
+[test]
+db_template = "template0"

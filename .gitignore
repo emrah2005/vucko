@@ -1,0 +1,51 @@
+# Dependencies
+node_modules
+/.pnp
+.pnp.js
+
+# Build output
+.next
+out
+
+# Env files — NEVER commit secrets
+.env
+.env.local
+.env*.local
+.env.development
+.env.production
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Supabase CLI — local state, secrets, temp files
+supabase/.temp
+supabase/.branches
+supabase/branches
+supabase/config.toml.local
+supabase/**/.env*
+!supabase/.env.example
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Testing
+coverage
+.nyc_output
+
+# Vercel
+.vercel
+.turbo
